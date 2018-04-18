@@ -1,0 +1,12 @@
+/*Q1 Find the titles of all movies directed by Steven Spielberg. */
+SELECT title FROM MOVIE
+WHERE director = 'Steven Spielberg'; 
+
+/*Q2 Find all years that have a movie that received a rating of 4 or 5, and sort them in increasing order. */
+
+SELECT DISTINCT year
+FROM Movie
+INNER JOIN Rating
+ON Movie.mid = Rating.mid
+WHERE stars BETWEEN 4 AND 5
+ORDER BY year ASC;
