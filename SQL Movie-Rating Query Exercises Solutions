@@ -1,3 +1,4 @@
+'''sql
 /*Q1 Find the titles of all movies directed by Steven Spielberg. */
 SELECT title FROM MOVIE
 WHERE director = 'Steven Spielberg'; 
@@ -112,3 +113,4 @@ Don't just calculate the overall average rating before and after 1980.) */
             WHERE m.year >= 1980 
             GROUP BY 1) post) B
           ON A.type = B.type
+'''
