@@ -10,3 +10,105 @@ INNER JOIN Rating
 ON Movie.mid = Rating.mid
 WHERE stars BETWEEN 4 AND 5
 ORDER BY year ASC;
+
+/*Q3 Find the titles of all movies that have no ratings. */
+SELECT title
+FROM Movie
+LEFT OUTER JOIN Rating
+ON Movie.mid = Rating.mid
+WHERE stars IS NULL;
+
+/*Q4 Some reviewers didn't provide a date with their rating. Find the names of all reviewers who have ratings with a NULL value for the date. *?
+SELECT r1.name 
+FROM Reviewer r1
+JOIN Rating r2
+ON r1.rID = r2.rID 
+WHERE r2.ratingDate IS NULL 
+AND r2.stars IS NOT NULL
+
+
+/*Q5Write a query to return the ratings data in a more readable format: reviewer name, 
+movie title, stars, and ratingDate. Also, sort the data, first by reviewer name, then by movie title, and lastly by number of stars. */
+
+SELECT rev.name, m.title, r.stars, r.ratingDate
+FROM Rating r
+JOIN Reviewer rev
+ON r.rID = rev.rID 
+JOIN Movie m
+ON m.mID = r.mID
+ORDER BY 1,2,3;
+
+/*Q6 For all cases where the same reviewer rated the same movie twice and gave it a higher rating the second time, 
+return the reviewer's name and the title of the movie. */
+
+SELECT r.name, m.title
+FROM
+(SELECT r1.rID as rid, 
+       r2.mID as mid
+FROM Rating r1
+JOIN Rating r2
+ON r1.rID = r2.rID AND r1.mID = r2.mID 
+WHERE r1.stars < r2.stars 
+AND r1.ratingDate < r2.ratingDate) sub
+JOIN Reviewer r 
+ON r.rID = sub.rid
+JOIN Movie m
+ON m.mID = sub.mid
+
+/*Q7 For each movie that has at least one rating, find the highest number of stars that movie received. 
+Return the movie title and number of stars. Sort by movie title. */
+
+SELECT m.title,  sub.max_rating
+FROM Movie m 
+JOIN 
+(SELECT r.mID AS mid, 
+       MAX(r.stars) AS max_rating
+FROM Rating r
+GROUP BY r.mID) sub 
+ON m.mID = sub.mid
+ORDER BY 1
+
+/*Q8 For each movie, return the title and the 'rating spread', that is, the difference between highest and lowest 
+ratings given to that movie. Sort by rating spread from highest to lowest, then by movie title. */
+
+SELECT m.title, 
+       sub.rating_spread
+FROM 
+(SELECT r.mID AS mid, 
+       (MAX(r.stars) - MIN(r.stars)) AS rating_spread
+FROM Rating r
+JOIN Movie m
+ON m.mID = r.mID 
+GROUP BY 1) sub
+JOIN Movie m 
+ON sub.mid = m.mID
+ORDER BY 2 DESC, 1
+
+/* Q9 Find the difference between the average rating of movies released before 1980 and the average rating of movies released after 1980.
+(Make sure to calculate the average rating for each movie, then the average of those averages for movies before 1980 and movies after.
+Don't just calculate the overall average rating before and after 1980.) */ 
+
+    SELECT A.avg_pre - B.avg_post 
+    FROM 
+       (SELECT AVG(pre.avg_star_bymovie) AS avg_pre, 
+              'average' AS type
+       FROM
+           (SELECT r.mID, 
+                   AVG(stars) as avg_star_bymovie
+            FROM Rating r
+            JOIN Movie m
+            ON r.mID = m.mID
+            WHERE m.year < 1980 
+            GROUP BY 1) pre) A 
+        JOIN 
+         (SELECT AVG(post.avg_star_bymovie) AS avg_post, 
+              'average' AS type
+       FROM
+           (SELECT r.mID, 
+                   AVG(stars) as avg_star_bymovie
+            FROM Rating r
+            JOIN Movie m
+            ON r.mID = m.mID
+            WHERE m.year >= 1980 
+            GROUP BY 1) post) B
+          ON A.type = B.type
